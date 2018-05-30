@@ -19,9 +19,10 @@ typedef enum asttypestag
 typedef enum parentypetag
 {
 	NONE,
-	PAREN,
-	BRACK,
-	CBRACK
+	PAREN, // parentheses
+	BRACK, // square bracket
+	CBRACK, // curly bracket
+	ABRACK // angle bracket
 }ptype;
 
 //balanced parenthesis AST type

@@ -17,6 +17,8 @@ LBRACK "["
 RBRACK "]"
 LCBRACK "{"
 RCBRACK "}"
+LABRACK "<"
+RABRACK ">"
 
 
 WS	[ \t\r\n]+
@@ -30,6 +32,8 @@ WS	[ \t\r\n]+
 {RBRACK} {return TOKEN_RBRACK;}
 {LCBRACK} {return TOKEN_LCBRACK;}
 {RCBRACK} {return TOKEN_RCBRACK;}
+{LABRACK} {return TOKEN_LABRACK;}
+{RABRACK} {return TOKEN_RABRACK;}
 
 
 . { /*error */ } 
