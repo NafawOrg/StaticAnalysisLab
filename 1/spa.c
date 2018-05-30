@@ -81,6 +81,21 @@ void printAST(paren *node, int indent)
 	}
 }
 
+char strNodeType(paren *node)
+{
+	char tagname;
+
+	switch(node->type) {
+		case PAREN: tagname = '('; break;
+		case BRACK: tagname = '['; break;
+		case CBRACK: tagname = '{'; break;
+		case ABRACK: tagname = '<'; break;
+		default: tagname = 'e';
+	}
+
+	return tagname;
+}
+
 char *textFromFile(char *filename)
 {
 	FILE *file;
@@ -119,10 +134,44 @@ char *textFromFile(char *filename)
 	return text;
 
 }
+
+// sa = static analyzer
+// We want to check the property that for any depth level, 
+// no more than $d$ depeth of the same symbol is used. 
+// That means that $[[[[()]]]]$ violates the property for $d=3$, 
+// but, $<<<(((<{}>)))>>>{}$ does not.
+paren *saNestedSequence(paren *parent, paren *node, int accum, const int limit)
+{
+	paren *violator;
+
+	if (!node) {
+		return NULL;
+	}
+
+	if (parent && node->type == parent->type) {
+		++accum;
+	} else {
+		accum = 0;
+	}
+
+	if (accum >= limit) {
+		return node;
+	}
+
+	violator = saNestedSequence(node, node->left, accum, limit);
+	if (violator) {
+		return violator;
+	}
+	violator = saNestedSequence(node, node->right, accum, limit);
+
+	return violator;
+}
+
 	
 int main(int argc, char **argv)
 {
 	char *input;
+	paren *violator;
 	
 	if(argc < 2)
 	{
@@ -146,6 +195,13 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 	
+	const int lentghLimit = 3;
+	violator = saNestedSequence(NULL, root, 0, lentghLimit);
+	if (violator) {
+		printf("found nested sequence %c with length > %d\n",
+			strNodeType(violator), lentghLimit);
+	}
+
 	printAST(root, 0);
 	deleteParen(root);	
 }
