@@ -3,8 +3,8 @@
  */
 
 #include "paren.h"
-#include "parser.h"
-#include "lexer.h"
+#include "tmp/parser.h"
+#include "tmp/lexer.h"
 
 #include <stdio.h>
 

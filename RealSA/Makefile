@@ -1,11 +1,11 @@
 MAIN=spa
 STRUCTS=paren.c paren.h
-FILES=lexer.c paren.c parser.c
+FILES=tmp/lexer.c paren.c tmp/parser.c
 
 lexer: lexer.l $(STRUCTS)
 	lex lexer.l
 
-parser: lexer parser.y lexer.c $(STRUCTS)
+parser: lexer parser.y tmp/lexer.c $(STRUCTS)
 	bison parser.y
 
 c: parser $(MAIN).c
@@ -14,7 +14,7 @@ c: parser $(MAIN).c
 cpp: parser $(MAIN).cpp
 	g++ -Wno-write-strings -o $(MAIN) $(FILES) $(MAIN).cpp
 clean: 
-	rm -rf lexer.c lexer.h parser.c parser.h $(MAIN)
+	rm -rf tmp/* $(MAIN)
 
 all: c
 

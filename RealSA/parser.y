@@ -1,6 +1,6 @@
 %{
 
-#include "paren.h"
+#include "../paren.h"
 #include "parser.h"
 #include "lexer.h"
 
@@ -21,8 +21,8 @@ typedef void* yyscan_t;
 
 }
 
-%output "parser.c"
-%defines "parser.h"
+%output "tmp/parser.c"
+%defines "tmp/parser.h"
 
 %define api.pure
 %lex-param   { yyscan_t scanner }

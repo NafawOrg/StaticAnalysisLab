@@ -1,11 +1,11 @@
 %{
 //header section insert into output
-#include "paren.h"
+#include "../paren.h"
 #include "parser.h"
 #include <stdio.h>
 %}
 
-%option outfile="lexer.c" header-file="lexer.h"
+%option outfile="tmp/lexer.c" header-file="tmp/lexer.h"
 %option warn nodefault
 
 %option reentrant noyywrap never-interactive nounistd
