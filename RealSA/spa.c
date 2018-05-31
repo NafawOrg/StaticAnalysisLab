@@ -2,207 +2,204 @@
  * static program analyizer 101
  */
 
-#include "paren.h"
+#include "inc/reg_lang.h"
 #include "tmp/parser.h"
 #include "tmp/lexer.h"
 
 #include <stdio.h>
 
-int yyparse (paren **root, yyscan_t scan);
+int yyparse (linked_list **stmt_list, yyscan_t scan);
 
-paren *getAST (char *source_code)
+linked_list *getAST (char *source_code)
 {
-	paren *root; //root of AST change this depending on your AST data structure
+    linked_list *stmt_list = create_linked_list(); //root of AST change this depending on your AST data structure
 
-	yyscan_t scanner;
-	YY_BUFFER_STATE state;
+    yyscan_t scanner;
+    YY_BUFFER_STATE state;
 
-	if (yylex_init(&scanner)) 
-	{
-		//couldn't initialize
-		return NULL;
-	}
+    if (yylex_init(&scanner)) 
+    {
+        //couldn't initialize
+        return NULL;
+    }
 
-	state = yy_scan_string(source_code, scanner); //tokenize source_code
-	
-	if (yyparse(&root, scanner)) //retreive the AST from parser using tokenize string
-	{
-		//error parsing not your issue
-		return NULL;
-	}
-        
-	yy_delete_buffer(state, scanner);
-	yylex_destroy(scanner);
+    state = yy_scan_string(source_code, scanner); //tokenize source_code
+    
+    if (yyparse(&stmt_list, scanner)) //retreive the AST from parser using tokenize string
+    {
+        //error parsing not your issue
+        return NULL;
+    }
 
-	return root; //this should be changed
+    yy_delete_buffer(state, scanner);
+    yylex_destroy(scanner);
+
+    return stmt_list; //this should be changed
 }
 
-void printAST(paren *node, int indent)
+void printExpression(expression *expr, int indent)
 {
-	int i = 0;
-	if (node == NULL)
-		return;
-	if(node->type == PAREN)
-	{
-		for (i = 0; i< indent; i++)
-			printf("\t");
+    int i = 0;
+    
+    if(!expr) {
+        return;
+    }
 
-		printf("()\n");
-		printAST(node->left, indent + 1);
-	}
-	else if(node->type == BRACK)
-	{
-		for (i = 0; i< indent; i++)
-			printf("\t");
-
-		printf("[]\n");
-		printAST(node->left, indent + 1);
-	}
-	else if(node->type == CBRACK)
-	{
-		for (i = 0; i< indent; i++)
-			printf("\t");
-
-		printf("{}\n");
-		printAST(node->left, indent + 1);
-	}
-	else if (node->type == ABRACK)
-	{
-		for (i = 0; i < indent; i++)
-			printf("\t");
-		
-		printf("<>\n");
-		printAST(node->left, indent + 1);
-	}
-	else 
-	{
-		printAST(node->left, indent);
-		printAST(node->right, indent);
-	}
+    for (i = 0; i< indent; i++) {
+        printf("\t");
+    }
+    
+    switch(expr->type)
+    {
+        case (EQ):
+            {
+                printf("Compare:\n");
+                printExpression(expr->left, indent + 1);
+                printExpression(expr->right, indent + 1);
+            }break;
+        case (ADD):
+            {
+                printf("Add:\n");
+                printExpression(expr->left, indent + 1);
+                printExpression(expr->right, indent + 1);
+            }break;
+        case (MUL):
+            {
+                printf("Multiply:\n");
+                printExpression(expr->left, indent + 1);
+                printExpression(expr->right, indent + 1);
+            }break;
+        case (CONS): printf("%s\n", expr->value);
+    }
 }
 
-char strNodeType(paren *node)
+void printAssign(assign *asst)
 {
-	char tagname;
+    printf("Assignation of variable %s to expression:\n", asst->var_name);
+    printExpression(asst->expr, 1);
+}
 
-	switch(node->type) {
-		case PAREN: tagname = '('; break;
-		case BRACK: tagname = '['; break;
-		case CBRACK: tagname = '{'; break;
-		case ABRACK: tagname = '<'; break;
-		default: tagname = 'e';
-	}
+void printIf(ifstmt *ifst)
+{
+    printf("Conditional branch\n");
+    printf("\tCondition:\n");
+    printExpression(ifst->cond, 2);
+    printf("\tJump to: %s\n", ifst->target);
+}
 
-	return tagname;
+void printGoto(gotostmt *gtst)
+{
+    printf("Unconditional branch, jump to:%s\n", gtst->target);
+}
+
+void printInput(inputstmt *in)
+{
+    printf("Read to variable %s\n", in->var_name);
+}
+
+void printOutput(outputstmt *out)
+{
+    printf("Write to output variable %s\n", out->var_name);
+}
+
+void printLabel(label *lbl)
+{
+    printf("Label marker=%s\n", lbl);
+}
+
+void printAST(linked_list *stmt_list)
+{
+    linked_list_node *node = NULL;
+    if(!stmt_list)
+        return;
+    
+    node = stmt_list->head;
+
+    while(node)
+    {
+        statement *stmt = (statement*)node->element;
+        switch(stmt->type)
+        {
+            case (ASSIGN): printAssign((assign*)stmt->instruction); break;
+            case (IF): printIf((ifstmt*)stmt->instruction); break;
+            case (GOTO): printGoto((gotostmt*)stmt->instruction); break;
+            case (INPUT): printInput((inputstmt*)stmt->instruction); break;
+            case (OUTPUT): printOutput((outputstmt*)stmt->instruction); break;
+            case (LABEL): printLabel((label*)stmt->instruction);
+        }
+        node = node->next;
+    }
 }
 
 char *textFromFile(char *filename)
 {
-	FILE *file;
-	size_t fileSize;
-	char *text;
-		
+    FILE *file;
+    size_t fileSize;
+    char *text;
 
-	file = fopen(filename, "rb");
-	if (!file)
-	{
-		printf("Error reading file %s!\n", filename);
-		return NULL;
-	}
+    file = fopen(filename, "rb");
+    if (!file)
+    {
+        printf("Error reading file %s!\n", filename);
+        return NULL;
+    }
 
-	fseek(file, 0, SEEK_END); 
-	fileSize = ftell(file); // what's the position of the pointer in the end of this stream?
-	rewind(file);
-	
-	text = (char*)malloc(fileSize + 1); //one mor to null terminate the string
+    fseek(file, 0, SEEK_END); 
+    fileSize = ftell(file); // what's the position of the pointer in the end of this stream?
+    rewind(file);
+    
+    text = (char*)malloc(fileSize + 1); //one mor to null terminate the string
 
-	if(!text)
-	{
-		//failed to allocate text
-		return NULL;
-	}
-	
-	if(!fread(text, 1, fileSize, file))
-	{
-		printf("Error! Unable to read the file %s!", filename);
-		free(text);
-		return NULL;
-	}
+    if(!text)
+    {
+        //failed to allocate text
+        return NULL;
+    }
+    
+    if(!fread(text, 1, fileSize, file))
+    {
+        printf("Error! Unable to read the file %s!", filename);
+        free(text);
+        return NULL;
+    }
 
-	fclose(file);
-	
-	return text;
-
+    fclose(file);
+    
+    return text;
 }
 
-// sa = static analyzer
-// We want to check the property that for any depth level, 
-// no more than $d$ depeth of the same symbol is used. 
-// That means that $[[[[()]]]]$ violates the property for $d=3$, 
-// but, $<<<(((<{}>)))>>>{}$ does not.
-paren *saNestedSequence(paren *parent, paren *node, int accum, const int limit)
-{
-	paren *violator;
-
-	if (!node) {
-		return NULL;
-	}
-
-	if (parent && node->type == parent->type) {
-		++accum;
-	} else {
-		accum = 0;
-	}
-
-	if (accum == limit) {
-		return node;
-	}
-
-	violator = saNestedSequence(node, node->left, accum, limit);
-	if (violator) {
-		return violator;
-	}
-	violator = saNestedSequence(node, node->right, accum, limit);
-
-	return violator;
+void saUninitializedVars(linked_list *stmt_list) {
+    
 }
 
-	
 int main(int argc, char **argv)
 {
-	char *input;
-	paren *violator;
-	
-	if(argc < 2)
-	{
-		printf("Error! a filename to statically analyize is expected!\n");
-		exit(1);
-	}
-	
-	input = textFromFile(argv[1]);
-	
-	if(!input)
-	{	
-		//no input from file
-		exit(1);
-	}
+    char *input;
+    
+    if(argc < 2)
+    {
+        printf("Error! a filename to statically analyize is expected!\n");
+        exit(1);
+    }
 
-	paren *root = getAST(input);
-	
-	if(!root)
-	{
-		//parse error! 
-		exit(1);
-	}
-	
-	const int lentghLimit = 3;
-	violator = saNestedSequence(NULL, root, 0, lentghLimit);
-	if (violator) {
-		printf("found nested sequence %c with length > %d\n",
-			strNodeType(violator), lentghLimit);
-	}
+    input = textFromFile(argv[1]);
+    
+    if(!input)
+    {	
+        printf("No input from file!\n");
+        exit(1);
+    }
 
-	printAST(root, 0);
-	deleteParen(root);	
+    linked_list *root = getAST(input);
+    
+    if(!root)
+    {
+        printf("Error! File does not parse! %s\n", argv[1]);
+        exit(1);
+    }
+    
+    printAST(root);
+    //add deletes for all elements
+    delete_linked_list(root);	
 }
 
