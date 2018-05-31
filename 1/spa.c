@@ -154,7 +154,7 @@ paren *saNestedSequence(paren *parent, paren *node, int accum, const int limit)
 		accum = 0;
 	}
 
-	if (accum >= limit) {
+	if (accum == limit) {
 		return node;
 	}
 
