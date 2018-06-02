@@ -206,6 +206,14 @@ int linked_list_size(linked_list *ll)
 }
 
 /*
+ * linked_list_is_empty: checks if linked list has any nodes
+ */
+BOOL linked_list_is_empty(linked_list *ll)
+{
+    return ll->head == NULL ? TRUE : FALSE;
+}
+
+/*
  * linked_list_add_nth: function to insert on the linked list at a given position
  */
 BOOL linked_list_add_nth(linked_list *ll, void *element, unsigned int position)

@@ -3,6 +3,7 @@
  */
 
 #include "inc/reg_lang.h"
+#include "inc/stat_analyzer.h"
 #include "tmp/parser.h"
 #include "tmp/lexer.h"
 
@@ -171,10 +172,6 @@ char *textFromFile(char *filename)
     return text;
 }
 
-void saUninitializedVars(linked_list *stmt_list) {
-    
-}
-
 int main(int argc, char **argv)
 {
     char *input;
@@ -204,6 +201,7 @@ int main(int argc, char **argv)
     //printf("\n deleting \n\n");
     //linked_list_delete_nth(root, 4);
     printAST(root);
+    saUninitializedVars(root);
     //add deletes for all elements
     delete_linked_list(root);	
 }

@@ -13,12 +13,15 @@
 extern "C" {
 #endif
 
-#ifndef linked_list
+#ifndef LINKED_LIST_H
+#define LINKED_LIST_H
+
 typedef struct linked_list_tag
 {
     linked_list_node *head;
     linked_list_node *tail;
 }linked_list;
+
 #endif
 
 /*c
@@ -50,6 +53,11 @@ void *linked_list_delete_end(linked_list *ll);
  * linked_list_size: returns the ammount of elements in the linked list;
  */
 int linked_list_size(linked_list *ll);
+
+/*
+ * linked_list_is_empty: checks if linked list has any nodes
+ */
+BOOL linked_list_is_empty(linked_list *ll);
 
 /*
  * linked_list_add_nth: function to insert on the linked list at a given position
