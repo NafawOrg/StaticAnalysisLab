@@ -93,7 +93,7 @@ assignation
     ;
 
 expression
-    : term _EQUALS expression {$$ = create_expression(EQ, $1, $3, NULL );}
+    : term _EQUALS expression {$$ = create_expression(EQ, $1, $3, NULL);}
     | term {$$ = $1;}
     ;
 
@@ -108,8 +108,8 @@ operand
     ;
 
 literal
-    : _IDEN {$$ = create_expression(CONS, NULL, NULL, $1); free($1);}
-    | _NUM {$$ = create_expression(CONS, NULL, NULL, $1); free($1);}
+    : _IDEN {$$ = create_expression(VAR, NULL, NULL, $1); free($1);}
+    | _NUM {$$ = create_expression(INT, NULL, NULL, $1); free($1);}
     | _LPAREN expression _RPAREN {$$ = $2;}
     ;
 

@@ -79,7 +79,7 @@ void *linked_list_get(linked_list *ll);
 /*
  * linked_list_transverse: function useful to get all elements of the list whithot doing too much lopps or knowing about internal structure
  */
-BOOL linked_list_transverse (linked_list *ll, void **result);
+BOOL linked_list_traverse(linked_list *ll, void **result);
 
 
 /*

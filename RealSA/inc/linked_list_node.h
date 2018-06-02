@@ -11,6 +11,7 @@ typedef struct linked_list_node_tag
 {
     void *element;
     struct linked_list_node_tag *next;
+    struct linked_list_node_tag *prev;
 }linked_list_node;
 #endif
 

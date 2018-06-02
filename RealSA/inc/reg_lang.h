@@ -31,7 +31,8 @@ typedef enum express_type
     EQ,
     ADD,
     MUL,
-    CONS
+    INT,
+    VAR
 }expression_type;
 
 typedef struct express

@@ -69,7 +69,10 @@ void printExpression(expression *expr, int indent)
                 printExpression(expr->left, indent + 1);
                 printExpression(expr->right, indent + 1);
             }break;
-        case (CONS): printf("%s\n", expr->value);
+        case (INT): printf("%s int\n", expr->value);
+            break;
+        case (VAR): printf("%s var\n", expr->value);
+            break;
     }
 }
 
@@ -197,7 +200,9 @@ int main(int argc, char **argv)
         printf("Error! File does not parse! %s\n", argv[1]);
         exit(1);
     }
-    
+    //printAST(root);
+    //printf("\n deleting \n\n");
+    //linked_list_delete_nth(root, 4);
     printAST(root);
     //add deletes for all elements
     delete_linked_list(root);	

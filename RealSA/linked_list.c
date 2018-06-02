@@ -33,9 +33,11 @@ BOOL linked_list_add_front(linked_list *ll, void *element)
     node->element = element;
     if(!ll->head) { //empty list
         ll->tail = node;
+    } else {
+        ll->head->prev = node; // make newly created node to be the previous element of current head
     }
     node->next = ll->head;
-    ll->head = node;
+    ll->head = node; // change current head to new element
     return TRUE;
 }
 
@@ -49,10 +51,11 @@ BOOL linked_list_add_end(linked_list *ll, void *element)
         return FALSE;
     }
     node->element = element;
-    if(!ll->head) {
+    if(!ll->head) { // empty list
         ll->tail = ll->head = node;
     } else {
         ll->tail->next = node;
+        node->prev = ll->tail; // link newly created node with previous tail
     }
     ll->tail = node;
     node->next = NULL;
@@ -90,7 +93,7 @@ void *linked_list_get(linked_list *ll)
 }
 
 /*
- * linked_list_get_nth: gets the nth element of the list, by using this you need to loop though the entire 
+ * linked_list_get_nth: gets the nth element of the list, by using this you need to loop though the entire linked list
  */
 void *linked_list_get_nth(linked_list *ll, unsigned int n)
 {
@@ -111,10 +114,9 @@ void *linked_list_get_nth(linked_list *ll, unsigned int n)
 }
 
 /*
- * linked_list_transverse: function useful to get all elements of the list whithot doing too much lopps or knowing about internal structure
+ * linked_list_traverse: function useful to get all elements of the list whithot doing too much lopps or knowing about internal structure
  */
-//horrible typo in the name, I know, I'm lazy to correct it
-BOOL linked_list_transverse(linked_list *ll, void **result)
+BOOL linked_list_traverse(linked_list *ll, void **result)
 {
     static linked_list_node *node = NULL;	
     if (!ll)
@@ -153,10 +155,12 @@ void *linked_list_delete_front(linked_list *ll)
         return NULL;
     }
     node = ll->head;
-    element = node->element; 
+    element = node->element;
     ll->head = node->next;
-    if(!ll->head) {
+    if(!ll->head) { // empty list
         ll->tail = NULL;
+    } else {
+        ll->head->prev = NULL;
     }
     free(node);
     return element;
@@ -168,28 +172,21 @@ void *linked_list_delete_front(linked_list *ll)
 void *linked_list_delete_end(linked_list *ll)
 {
     void *element = NULL;
-        linked_list_node *node = NULL;
-    linked_list_node *aux = ll->head;
-    if(!ll->head) {
+    linked_list_node *node = NULL;
+
+    if (!ll->head) {
         return NULL;
     }
+
     node = ll->tail;
     element = node->element;
-    if(ll->head == ll->tail) // list of one element easy to delete without cycling
-    {
+    if (ll->head == ll->tail) { // list of one element
         ll->tail = ll->head = NULL;
-        free(node);
-        return element;
+    } else {
+        ll->tail = ll->tail->prev;
+        ll->tail->next = NULL;
     }
-    
-    while(aux->next != ll->tail) {
-        aux = aux->next; //move pointer to delete
-    }
-    
-    aux->next = NULL;	
     free(node);
-    ll->tail = aux;
-        
     return element;
 }
 
@@ -237,6 +234,8 @@ BOOL linked_list_add_nth(linked_list *ll, void *element, unsigned int position)
     }
 
     node->next = aux->next;
+    node->next->prev = node;
+    node->prev = aux;
     aux->next = node;
     
     return TRUE;	
@@ -272,7 +271,7 @@ void *linked_list_delete_nth(linked_list *ll, unsigned int position)
     aux2 = aux->next;
     
     aux->next = aux2->next;
-    aux2->next = NULL;
+    aux->next->prev = aux;
     element = aux2->element;
     free(aux2);
 
@@ -296,23 +295,22 @@ void *linked_list_delete(linked_list *ll)
 }
 
 /*
- * delete_linked_list: deletes/frees a linked list, first deallocates all it's objects, so be careful using it, you might create a memory leak:p
+ * delete_linked_list: deletes linked list with its elements
  */
 void delete_linked_list(linked_list *ll)
 {
-    //linked_list_node *aux = ll->head;
-    while (ll->head)
-//	{
+    if (!ll) {
+        return;
+    }
+    while (ll->head) {
         free(linked_list_delete(ll));
-//		ll->head = ll->head->next;
-//		free(aux->element);///???
-//		free(aux);	
-//		aux = ll->head;
-//	}
+    }
     free(ll);
 }
 
-//delete without freeing the elements contained
+/*
+ * del_linked_list: deletes linked list, but DOES NOT touch elements
+ */
 void del_linked_list(linked_list *ll)
 {
     if(!ll) {
@@ -321,9 +319,9 @@ void del_linked_list(linked_list *ll)
     while(ll->head) {
         linked_list_delete(ll);
     }
-    
     free (ll);
 }
+
 /*
  * linked_list_perform_action: performs the function action to each element on the list
  */
