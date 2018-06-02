@@ -1,3 +1,10 @@
 {
-    "C_Cpp.dimInactiveRegions": true
+    "C_Cpp.dimInactiveRegions": true,
+    "files.associations": {
+        "*.S": "asm",
+        "*.json": "jsonc",
+        "*.tcc": "c",
+        "vector": "c",
+        "system_error": "c"
+    }
 }

@@ -1,5 +1,5 @@
 #include "../inc/stat_analyzer.h"
-#include "../inc/reg_lang.h"
+#include "../inc/ast_printer.h"
 #include "stdio.h"
 #include "string.h"
 
@@ -25,11 +25,10 @@ void collectExprVars(linked_list *vars_list, expression *expr)
 }
 
 static
-assign *findVarInitStatement(
+statement *findVarInitStatement(
     linked_list *stmt_list, linked_list_node *end, linked_list_node **out, char *var_name)
 {
     linked_list_node *curr = end->prev;
-    assign *result = NULL;
     void *elem = end->element;
 
     while(curr)
@@ -42,57 +41,57 @@ assign *findVarInitStatement(
             case (ASSIGN): {
                 assign *asgn = (assign *)stmt->instruction;
                 if (strcmp(var_name, asgn->var_name) == 0) {
-                    result = asgn;
                     *out = curr;
-                    return result;
+                    return stmt;
                 }
             }break;
         }
         curr = curr->prev;
     }
 
-    return result;
+    return NULL;
 }
 
-// probably better to make double linked list in order to move
-// back and forth through the statement list
 static
-BOOL checkAssignment(linked_list *stmt_list, linked_list_node *end, assign *asgn)
+BOOL checkAssignment(linked_list *stmt_list, linked_list_node *end, assign *asgn, linked_list *deps)
 {
-    linked_list_node *curr = stmt_list->head;
-
+    BOOL result = FALSE;
     linked_list *vars_list = create_linked_list();
     collectExprVars(vars_list, asgn->expr);
 
-    if (linked_list_is_empty(vars_list)) {
-        return FALSE;
-    }
+    if (!linked_list_is_empty(vars_list)) {
+        linked_list_node *curr_var = vars_list->head;
+        linked_list_node *new_end = NULL;
 
-    linked_list_node *curr_var = vars_list->head;
-    linked_list_node *new_end = NULL;
-
-    while(curr_var)
-    {
-        expression *expr = (expression *)curr_var->element;
-        assign *var_assign = findVarInitStatement(stmt_list, end, &new_end, expr->value);
-        if (var_assign) {
-            if (checkAssignment(stmt_list, new_end, var_assign)) {
-                printf("%s -> ", var_assign->var_name);
-                return TRUE;
+        while(curr_var)
+        {
+            expression *expr = (expression *)curr_var->element;
+            statement *stmt = findVarInitStatement(stmt_list, end, &new_end, expr->value);
+            if (stmt) {
+                assign *var_assign = (assign *) stmt->instruction;
+                if (checkAssignment(stmt_list, new_end, var_assign, deps)) {
+                    printf("%s -> ", var_assign->var_name);
+                    linked_list_add(deps, stmt);
+                    result = TRUE;
+                    break;
+                }
+            } else {
+                printf("Variable uninitialized %s : ", expr->value);
+                result = TRUE;
+                break;
             }
-        } else {
-            printf("Variable uninitialized %s -> ", expr->value);
-            return TRUE;
+            curr_var = curr_var->next;
         }
-        curr_var = curr_var->next;
     }
 
-    return FALSE;
+    del_linked_list(vars_list);
+    return result;
 }
 
 void saUninitializedVars(linked_list *stmt_list)
 {
-    linked_list_node *node = NULL;
+    linked_list *dependency = NULL;
+    linked_list_node *curr = NULL;
     if (!stmt_list) {
         return;
     }
@@ -102,22 +101,27 @@ void saUninitializedVars(linked_list *stmt_list)
     printf("| Checking that no variable is used without first being assigned value. |\n");
     printf("+-----------------------------------------------------------------------+\n");
 
-    node = stmt_list->head;
-    while(node) 
+    curr = stmt_list->head;
+    while(curr) 
     {
-        statement *stmt = (statement *)node->element;
+        statement *stmt = (statement *)curr->element;
         switch(stmt->type) 
         {
             case (ASSIGN): {
-                char *var_name = ((assign *)stmt->instruction)->var_name;
-                if (checkAssignment(stmt_list, node, (assign *) stmt->instruction)) {
+                dependency = create_linked_list();
+                assign * asgn = (assign *)stmt->instruction;
+                char *var_name = asgn->var_name;
+                if (checkAssignment(stmt_list, curr, asgn, dependency)) {
                     printf("%s\n", var_name);
                 }
+                printAST(dependency);
+                linked_list_delete(dependency);
             }break;
             case (IF): {
+                //dependency = create_linked_list();
 
             }break;
         }
-        node = node->next;
+        curr = curr->next;
     }
 }

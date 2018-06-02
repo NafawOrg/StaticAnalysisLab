@@ -8,7 +8,8 @@
 extern "C" {
 #endif
 
-#ifndef statement
+#ifndef REG_LANG_H
+#define REG_LANG_H
 
 typedef enum stmt_type
 {

@@ -29,7 +29,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/RealSA/spa",
-            "args": ["RealSA/tests/fib.rl"],
+            "args": ["RealSA/tests/simple.rl"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

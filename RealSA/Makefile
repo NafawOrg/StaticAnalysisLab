@@ -1,6 +1,6 @@
 MAIN=spa
-STRUCTS=inc/linked_list.h inc/linked_list_node.h inc/reg_lang.h inc/stat_analyzer.h
-FILES=linked_list.c tmp/lexer.c reg_lang.c tmp/parser.c analyzer/uninitvar_simple.c
+STRUCTS=inc/linked_list.h inc/linked_list_node.h inc/reg_lang.h inc/stat_analyzer.h inc/ast_printer.h
+FILES=linked_list.c tmp/lexer.c reg_lang.c tmp/parser.c analyzer/uninitvar_simple.c ast_printer.c
 
 lexer: lexer.l $(STRUCTS)
 	lex lexer.l
