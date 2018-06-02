@@ -17,3 +17,5 @@ finish:
 
 if n = 0 goto good;
 good:
+
+if 0 = min goto finish;

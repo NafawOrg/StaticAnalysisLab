@@ -53,11 +53,14 @@ statement *findVarInitStatement(
 }
 
 static
-BOOL checkAssignment(linked_list *stmt_list, linked_list_node *end, assign *asgn, linked_list *deps)
+BOOL checkStatement(linked_list *stmt_list, linked_list_node *end, statement *stmt, linked_list *deps)
 {
     BOOL result = FALSE;
     linked_list *vars_list = create_linked_list();
-    collectExprVars(vars_list, asgn->expr);
+    switch(stmt->type) {
+        case ASSIGN: collectExprVars(vars_list, ((assign *)stmt->instruction)->expr); break;
+        case IF: collectExprVars(vars_list, ((ifstmt *)stmt->instruction)->cond); break;
+    }
 
     if (!linked_list_is_empty(vars_list)) {
         linked_list_node *curr_var = vars_list->head;
@@ -66,16 +69,17 @@ BOOL checkAssignment(linked_list *stmt_list, linked_list_node *end, assign *asgn
         while(curr_var)
         {
             expression *expr = (expression *)curr_var->element;
-            statement *stmt = findVarInitStatement(stmt_list, end, &new_end, expr->value);
-            if (stmt) {
-                assign *var_assign = (assign *) stmt->instruction;
-                if (checkAssignment(stmt_list, new_end, var_assign, deps)) {
+            statement *init_stmt = findVarInitStatement(stmt_list, end, &new_end, expr->value);
+            if (init_stmt) {
+                assign *var_assign = (assign *) init_stmt->instruction;
+                if (checkStatement(stmt_list, new_end, init_stmt, deps)) {
                     printf("%s -> ", var_assign->var_name);
-                    linked_list_add(deps, stmt);
+                    linked_list_add(deps, init_stmt);
                     result = TRUE;
                     break;
                 }
             } else {
+                printf("--------------------------------------------------\n");
                 printf("Variable uninitialized %s : ", expr->value);
                 result = TRUE;
                 break;
@@ -105,23 +109,32 @@ void saUninitializedVars(linked_list *stmt_list)
     while(curr) 
     {
         statement *stmt = (statement *)curr->element;
-        switch(stmt->type) 
+        switch(stmt->type)
         {
-            case (ASSIGN): {
-                dependency = create_linked_list();
-                assign * asgn = (assign *)stmt->instruction;
-                char *var_name = asgn->var_name;
-                if (checkAssignment(stmt_list, curr, asgn, dependency)) {
-                    printf("%s\n", var_name);
-                }
-                printAST(dependency);
-                linked_list_delete(dependency);
-            }break;
-            case (IF): {
-                //dependency = create_linked_list();
-
-            }break;
+            case (ASSIGN):
+            case (IF):
+                break;
+            default: curr = curr->next; 
+                continue;
         }
+
+        dependency = create_linked_list();
+
+        if (checkStatement(stmt_list, curr, stmt, dependency)) {
+            switch(stmt->type) 
+            {
+                case (ASSIGN): {
+                    char *var_name = ((assign *)stmt->instruction)->var_name;
+                    printf("%s\n", var_name);
+                }break;
+                case (IF): {
+                    printf("%s\n", "if statement condition");
+                }break;
+            }
+        }
+
+        printAST(dependency);
+        del_linked_list(dependency);
         curr = curr->next;
     }
 }
