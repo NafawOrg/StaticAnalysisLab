@@ -9,7 +9,7 @@ Fib: if i = n goto done;
     F := a + b;
     a := b;
     b := F;
-    i := i + 1; 
+    i := i + 1;
     goto Fib;
 one:
     F := 1;

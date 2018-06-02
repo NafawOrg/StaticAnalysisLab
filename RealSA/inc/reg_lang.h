@@ -13,6 +13,7 @@ extern "C" {
 typedef enum stmt_type
 {
     ASSIGN,
+    DECLAR,
     IF,
     GOTO,
     INPUT,
@@ -31,7 +32,8 @@ typedef enum express_type
     EQ,
     ADD,
     MUL,
-    CONS
+    INT, // renamed from CONS to integer as we need to distinguish them from vars
+    VAR     // variable
 }expression_type;
 
 typedef struct express
@@ -41,6 +43,11 @@ typedef struct express
     struct express *right;
     char *value;
 }expression;
+
+typedef struct decl
+{
+    char *var_name;
+}declaration;
 
 typedef struct assign_tag
 {
@@ -102,6 +109,12 @@ gotostmt *create_gotostmt(char *lbl);
 
 /*delete a goto statement*/
 void delete_gotostmt(gotostmt *gtst);
+
+/*create new variable declaration*/
+declaration *create_declaration(char *var);
+
+/*delete variable declaration*/
+void delete_declaration(declaration *decl);
 
 /*create a new assignment */
 assign *create_assign(char *var, expression *ex);

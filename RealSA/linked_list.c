@@ -90,6 +90,25 @@ void *linked_list_get(linked_list *ll)
 }
 
 /*
+ * fast kostyl, double linked list required...
+ */
+linked_list_node *linked_list_get_prev(linked_list *ll, void *element)
+{
+    linked_list_node *node = ll->head;
+    linked_list_node *prev = NULL;
+    while(node) {
+        if (node->element == element) {
+            break;
+        }
+
+        prev = node;
+        node = node->next;
+    }
+
+    return prev;
+}
+
+/*
  * linked_list_get_nth: gets the nth element of the list, by using this you need to loop though the entire 
  */
 void *linked_list_get_nth(linked_list *ll, unsigned int n)
@@ -206,6 +225,11 @@ int linked_list_size(linked_list *ll)
         size++;
     }
     return size;
+}
+
+BOOL linked_list_is_empty(linked_list *ll)
+{
+    return ll->head == NULL ? TRUE : FALSE;
 }
 
 /*

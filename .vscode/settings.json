@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "*.S": "asm",
+        "*.json": "jsonc",
+        "*.tcc": "c",
+        "system_error": "c",
+        "type_traits": "c",
+        "linked_list.h": "c"
+    }
+}

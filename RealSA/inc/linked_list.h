@@ -52,6 +52,11 @@ void *linked_list_delete_end(linked_list *ll);
 int linked_list_size(linked_list *ll);
 
 /*
+ * linked_list_is_empty: checks if linked list is empty;
+ */
+BOOL linked_list_is_empty(linked_list *ll);
+
+/*
  * linked_list_add_nth: function to insert on the linked list at a given position
  */
 BOOL linked_list_add_nth(linked_list *ll, void *element, unsigned int position);
@@ -75,6 +80,8 @@ void *linked_list_get_nth(linked_list *ll, unsigned int n);
  * linked_list_get: default linked list get
  */
 void *linked_list_get(linked_list *ll);
+
+linked_list_node *linked_list_get_prev(linked_list *ll, void *element);
 
 /*
  * linked_list_transverse: function useful to get all elements of the list whithot doing too much lopps or knowing about internal structure

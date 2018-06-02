@@ -69,8 +69,16 @@ void printExpression(expression *expr, int indent)
                 printExpression(expr->left, indent + 1);
                 printExpression(expr->right, indent + 1);
             }break;
-        case (CONS): printf("%s\n", expr->value);
+        case (INT):
+            printf("%s int\n", expr->value); break;
+        case (VAR): 
+            printf("%s var\n", expr->value);
     }
+}
+
+void printDeclaration(declaration *decl)
+{
+    printf("Declaration of variable %s\n", decl->var_name);
 }
 
 void printAssign(assign *asst)
@@ -121,6 +129,7 @@ void printAST(linked_list *stmt_list)
         switch(stmt->type)
         {
             case (ASSIGN): printAssign((assign*)stmt->instruction); break;
+            case (DECLAR): printDeclaration((declaration*)stmt->instruction); break;
             case (IF): printIf((ifstmt*)stmt->instruction); break;
             case (GOTO): printGoto((gotostmt*)stmt->instruction); break;
             case (INPUT): printInput((inputstmt*)stmt->instruction); break;
@@ -168,8 +177,117 @@ char *textFromFile(char *filename)
     return text;
 }
 
-void saUninitializedVars(linked_list *stmt_list) {
-    
+void collectVars(linked_list *vars_list, expression *expr)
+{
+    if(!expr) {
+        return;
+    }
+    switch(expr->type)
+    {
+        case (EQ):
+        case (ADD):
+        case (MUL):
+            collectVars(vars_list, expr->left);
+            collectVars(vars_list, expr->right);
+            break;
+        case (INT):
+            break;
+        case (VAR): 
+            linked_list_add_end(vars_list, expr);
+    }
+}
+
+assign *findVarInitStatement(
+    linked_list *stmt_list, linked_list_node *end, linked_list_node **out, char *var_name)
+{
+    linked_list_node *curr = stmt_list->head;
+    assign *result = NULL;
+    void *elem = end->element;
+
+    //while(curr != end)
+    // todo: remove kostyl => double linked list
+    while(curr = linked_list_get_prev(stmt_list, elem))
+    {
+        statement *stmt = (statement *)curr->element;
+        elem = curr->element;//
+
+        switch(stmt->type)
+        {
+            case (ASSIGN): {
+                assign *asgn = (assign *)stmt->instruction;
+                if (strcmp(var_name, asgn->var_name) == 0) {
+                    result = asgn;
+                    *out = curr;
+                    return result;
+                }
+            }break;
+        }
+        //curr = curr->next;
+    }
+
+    return result;
+}
+
+// probably better to make double linked list in order to move
+// back and forth through the statement list
+BOOL checkAssignment(linked_list *stmt_list, linked_list_node *end, assign *asgn)
+{
+    linked_list_node *curr = stmt_list->head;
+
+    linked_list *vars_list = create_linked_list();
+    collectVars(vars_list, asgn->expr);
+
+    if (linked_list_is_empty(vars_list)) {
+        return FALSE;
+    }
+
+    linked_list_node *curr_var = vars_list->head;
+    linked_list_node *new_end = NULL;
+
+    while(curr_var)
+    {
+        expression *expr = (expression *)curr_var->element;
+        assign *var_assign = findVarInitStatement(stmt_list, end, &new_end, expr->value);
+        if (var_assign) {
+            if (checkAssignment(stmt_list, new_end, var_assign)) {
+                printf("%s -> ", var_assign->var_name);
+                return TRUE;
+            }
+        } else {
+            printf("Variable uninitialized %s -> ", expr->value);
+            return TRUE;
+        }
+        curr_var = curr_var->next;
+    }
+
+    return FALSE;
+}
+
+void saUninitializedVars(linked_list *stmt_list)
+{
+    linked_list_node *node = NULL;
+    if (!stmt_list) {
+        return;
+    }
+
+    node = stmt_list->head;
+
+    while(node) 
+    {
+        statement *stmt = (statement *)node->element;
+        switch(stmt->type) 
+        {
+            // for simplicity checking only assignments todo IF stmt...
+            case (ASSIGN): {
+                char *var_name = ((assign *)stmt->instruction)->var_name;
+                if (checkAssignment(stmt_list, node, (assign *) stmt->instruction)) {
+                    printf("%s\n", var_name);
+                }
+            }break;
+            default: break;
+        }
+        node = node->next;
+    }
 }
 
 int main(int argc, char **argv)
@@ -199,6 +317,7 @@ int main(int argc, char **argv)
     }
     
     printAST(root);
+    saUninitializedVars(root);
     //add deletes for all elements
     delete_linked_list(root);	
 }

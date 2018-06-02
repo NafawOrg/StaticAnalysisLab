@@ -6,7 +6,7 @@
 
 int yyerror(linked_list **stmt_list, yyscan_t scanner, const char *msg) 
 {
-	printf("Unrecognized structure, message: %s\n", msg);
+    printf("Unrecognized structure, message: %s\n", msg);
 }
 
 %}
@@ -31,15 +31,16 @@ typedef void* yyscan_t;
 
 %union 
 {
-	char *str;
-	inputstmt *in;
-	outputstmt *out;	
-	expression *expr;
-	label *lbl;
-	gotostmt *gtst;
-	ifstmt *ifst;
-	assign *asst;
-	statement *stmt; 
+    char *str;
+    inputstmt *in;
+    outputstmt *out;	
+    expression *expr;
+    label *lbl;
+    gotostmt *gtst;
+    ifstmt *ifst;
+    assign *asst;
+    statement *stmt;
+    declaration *decl;
 }
 
 %token _ASSIGN
@@ -59,6 +60,7 @@ typedef void* yyscan_t;
 
 %type <stmt> statement_
 %type <asst> assignation
+%type <decl> declaration_
 %type <ifst> if_statement
 %type <gtst> goto_statement
 %type <in> input_
@@ -80,20 +82,25 @@ statement_list
     ;
 
 statement_
-    : assignation _SC {$$ = create_statement(ASSIGN, $1);}
+    : declaration_ _SC {$$ = create_statement(DECLAR, $1);}
+    | assignation _SC {$$ = create_statement(ASSIGN, $1);}
     | if_statement _SC {$$ = create_statement(IF, $1);}
     | goto_statement _SC {$$ = create_statement(GOTO, $1);}
     | input_ _SC {$$ = create_statement(INPUT, $1);} 
-    | output_ _SC {$$= create_statement(OUTPUT, $1);}
+    | output_ _SC {$$ = create_statement(OUTPUT, $1);}
     | label_ _COL {$$ = create_statement(LABEL, $1);}
-    ; 
+    ;
+
+declaration_
+    : _IDEN {$$ = create_declaration($1); free($1); }
+    ;
 
 assignation
     : _IDEN _ASSIGN expression {$$ = create_assign($1, $3); free($1);} 
     ;
 
 expression
-    : term _EQUALS expression {$$ = create_expression(EQ, $1, $3, NULL );}
+    : term _EQUALS expression {$$ = create_expression(EQ, $1, $3, NULL);}
     | term {$$ = $1;}
     ;
 
@@ -108,8 +115,8 @@ operand
     ;
 
 literal
-    : _IDEN {$$ = create_expression(CONS, NULL, NULL, $1); free($1);}
-    | _NUM {$$ = create_expression(CONS, NULL, NULL, $1); free($1);}
+    : _IDEN {$$ = create_expression(VAR, NULL, NULL, $1); free($1);}
+    | _NUM {$$ = create_expression(INT, NULL, NULL, $1); free($1);}
     | _LPAREN expression _RPAREN {$$ = $2;}
     ;
 

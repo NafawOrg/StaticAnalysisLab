@@ -153,6 +153,35 @@ void delete_gotostmt(gotostmt *gtst)
 }
 
 
+declaration *create_declaration(char *var)
+{
+    declaration *decl = (declaration *)malloc(sizeof(declaration));
+    char *var_name = NULL;
+
+    if (!var) {
+        return NULL;
+    }
+
+    if (var) {
+        var_name = (char *)malloc(sizeof(char)*(strlen(var)+1));
+        strcpy(var_name, var);
+        decl->var_name = var_name;
+    }
+
+    return decl;
+}
+
+void delete_declaration(declaration *decl)
+{
+    if (!decl) {
+        return;
+    }
+    if (decl->var_name) {
+        free(decl->var_name);
+    }
+    free(decl);
+}
+
 /*create a new assignment */
 assign *create_assign(char *var, expression *ex)
 {
