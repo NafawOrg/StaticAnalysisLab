@@ -1,3 +1,101 @@
+Solutions to the lab:
+=========================================
+
+### [First exercise](https://github.com/NafawOrg/StaticAnalysisLab/tree/Exercise1)
+- we should extend our *parenthesis language* and add angle brackets support, i.e. **<>**
+
+```
+cat ./1/angle.txt
+```
+```
+{}([{(<>)}])<[]>
+```
+```
+./1/spa ./1/angle.txt
+```
+```
+{}
+()
+	[]
+		{}
+			()
+				<>
+<>
+	[]
+```
+
+### [Second exercise](https://github.com/NafawOrg/StaticAnalysisLab/tree/FirstSA)
+- implement first simple static analyzer and check that for any depth level there is no sequence of symbols of certain depth, e.g. with depth 3 `[[[[()]]]]` violates the rule, but not `<<<(((<{}>)))>>>{}`.
+
+
+```
+./1/spa ./1/nested_bad.txt
+found nested sequence [ with length > 3
+[]
+	[]
+		[]
+			[]
+				()
+```
+```
+./1/spa ./1/nested_bad1.txt
+found nested sequence < with length > 3
+<>
+	<>
+		<>
+[]
+	[]
+		()
+			()
+{}
+	{}
+		{}
+			<>
+				<>
+					<>
+						<>
+```
+```
+./1/spa ./1/nested_bad2.txt
+found nested sequence { with length > 3
+<>
+	<>
+		<>
+			()
+				()
+					()
+						<>
+							{}
+								{}
+									{}
+										{}
+{}
+```
+```
+./1/spa ./1/nested_good.txt
+<>
+	<>
+		<>
+			()
+				()
+					()
+						<>
+							{}
+{}
+```
+
+### Third exercise
+
+- Using designed register machine languange implement simple static analyzer which checks that no variable is used without first being assigned a value.
+
+[In first attempt](https://github.com/NafawOrg/StaticAnalysisLab/tree/RealSAbranch) i implemented this task in not supposed way: extended language with ability to declare variables without initialization and then tried to find their usage.
+
+[In second attempt](https://github.com/NafawOrg/StaticAnalysisLab/tree/RealSAbranch2) i kept the original language and did the same thing to find usage of uninitialized variables - sequential search through linked list(extended it to be double) and analyzing expression's variables recursively in backward direction.
+
+
+
+
+
 Laboratory 1 -- Static Analysis: Hands on
 =========================================
 
