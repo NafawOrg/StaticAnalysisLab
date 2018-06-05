@@ -38,6 +38,7 @@ statement *findVarInitStatement(
 
         switch(stmt->type)
         {
+            case (INPUT):
             case (ASSIGN): {
                 assign *asgn = (assign *)stmt->instruction;
                 if (strcmp(var_name, asgn->var_name) == 0) {
