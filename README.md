@@ -92,8 +92,98 @@ found nested sequence { with length > 3
 
 [In second attempt](https://github.com/NafawOrg/StaticAnalysisLab/tree/RealSAbranch2) i kept the original language and did the same thing to find usage of uninitialized variables - sequential search through linked list(extended it to be double) and analyzing expression's variables recursively in backward direction.
 
+```
+//./RealSA/spa ./RealSA/tests/fib.rl
+a := 0;
+b := 1;
+input n;
+i := 1;
+F := 0;
+if n = 0 goto done;
+if n = 1 goto one;
+Fib: if i = n goto done;
+    F := a + b;
+    a := b;
+    b := F;
+    i := i + 1; 
+    goto Fib;
+one:
+    F := 1;
+done:
+output F;
++-----------------------------------------------------------------------+
+| Checking that no variable is used without first being assigned value. |
++-----------------------------------------------------------------------+
+```
+```
+//./RealSA/spa ./RealSA/tests/simple.rl
+a := 0;
+b := 1;
+input n;
+i := 1;
+F := 0;
+Q := a + b + z;
 
+z1 := Q;
 
+abc := z1;
+
+if abc = 0 goto done;
+done:
+
+if qwert = min goto finish;
+finish:
+
+if n = 0 goto good;
+good:
+
+if 0 = min goto finish;
+
++-----------------------------------------------------------------------+
+| Checking that no variable is used without first being assigned value. |
++-----------------------------------------------------------------------+
+--------------------------------------------------
+Variable uninitialized z : Q
+--------------------------------------------------
+Variable uninitialized z : Q -> z1
+Assignation of variable Q to expression:
+	Add:
+		a var
+		Add:
+			b var
+			z var
+--------------------------------------------------
+Variable uninitialized z : Q -> z1 -> abc
+Assignation of variable z1 to expression:
+	Q var
+Assignation of variable Q to expression:
+	Add:
+		a var
+		Add:
+			b var
+			z var
+--------------------------------------------------
+Variable uninitialized z : Q -> z1 -> abc -> if statement condition
+Assignation of variable abc to expression:
+	z1 var
+Assignation of variable z1 to expression:
+	Q var
+Assignation of variable Q to expression:
+	Add:
+		a var
+		Add:
+			b var
+			z var
+--------------------------------------------------
+Variable uninitialized qwert : if statement condition
+--------------------------------------------------
+Variable uninitialized min : if statement condition
+```
+
+Ofcourse this is far from real static analyzer, but we got some
+understanding how properties can be checked we AST structure.
+My guess is that in order to find more complicated cases with loops via labels we should build some kind of data flow graph and apply variables
+propagation, which we discussed on lecture 2. Maybe i will try to implement that later:)
 
 
 Laboratory 1 -- Static Analysis: Hands on
